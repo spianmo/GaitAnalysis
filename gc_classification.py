@@ -1,11 +1,11 @@
-#==================================================================================
+# ==================================================================================
 #                               GC CLASSIFICATION
-#----------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------
 #           Input: Pre-processed gait cycles, Output: LR, SVM & CNN Summaries
 #               Classifies according to testing and training data
-#==================================================================================
+# ==================================================================================
 #                                   Imports
-#==================================================================================
+# ==================================================================================
 import pickle
 import keras
 import numpy as np
@@ -24,11 +24,11 @@ from sklearn.preprocessing import LabelEncoder
 from statistics import mean, stdev
 from tqdm import trange
 
-#==================================================================================
+# ==================================================================================
 #                                   Constants
-#==================================================================================
+# ==================================================================================
 # General hyper-parameters
-LABEL = 'abnormality' # options: 'abnormality', 'gender', 'age', 'id'
+LABEL = 'abnormality'  # options: 'abnormality', 'gender', 'age', 'id'
 BINARY = True
 SPLIT_BY_ID = True
 SHOW_TEST_IDs = True
@@ -37,14 +37,14 @@ REPEAT = True
 REPEAT_AMOUNT = 50
 SEED = random.randint(1, 1000)
 
-if(REPEAT):
+if (REPEAT):
     acc_dc = []
     acc_lr = []
     acc_svm = []
     acc_cnn = []
 
 # Logistic regression hyper-parameter
-solver = 'liblinear' # for small datasets, improves performance
+solver = 'liblinear'  # for small datasets, improves performance
 
 # CNN hyper-parameters
 epochs = 100
@@ -52,6 +52,7 @@ filter1 = 101
 filter2 = 162
 kernel = 10
 dropout_rate = 0.5
+
 
 # more epochs for id than others
 # NOTEWORTHY SEEDS
@@ -67,18 +68,18 @@ dropout_rate = 0.5
 #                                               except SVM and LR classify at 70%)
 # age: all.... (around 30%)
 
-#==================================================================================
+# ==================================================================================
 #                                   Methods
-#==================================================================================
+# ==================================================================================
 # Evaluates the sklearn model w.r.t confusion matrix and ground-truth metrics
 def evaluate_sk_summary(classifier, X_test, y_test, sklearnType, cmap):
     score = classifier.score(X_test, y_test)
-    if(REPEAT):
-        if(sklearnType == 'dc'): acc_dc.append(score)
+    if (REPEAT):
+        if (sklearnType == 'dc'): acc_dc.append(score)
         if (sklearnType == 'lr'): acc_lr.append(score)
         if (sklearnType == 'svm'): acc_svm.append(score)
 
-    if(not REPEAT):
+    if (not REPEAT):
         predicted = classifier.predict(X_test)
         print("Classification report for", sklearnType, "classifier %s:\n%s\n"
               % (classifier, metrics.classification_report(y_test, predicted)))
@@ -92,29 +93,32 @@ def evaluate_sk_summary(classifier, X_test, y_test, sklearnType, cmap):
         plt.show()
         plt.close()
 
+
 # Plots confusion matrix without requiring a classifier
 def plot_cm(cm, labels, name, cmap, score):
     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=labels)
     disp.plot(include_values=True, cmap=cmap)
     plt.xlabel('Predicted ' + LABEL)
     plt.ylabel('True ' + LABEL)
-    plt.title('Confusion Matrix (Accuracy: {:.2f})'.format(score)) # name
+    plt.title('Confusion Matrix (Accuracy: {:.2f})'.format(score))  # name
     plt.show()
+
 
 # Evaluates the keras neural network model w.r.t confusion matrix and ground-truth metrics
 def evaluate_nn_summary(model, X_test, y_test, disp_labels):
     pred = model.predict_classes(X_test)
     score = sum(y_test == pred) / len(y_test)
 
-    if(REPEAT):
+    if (REPEAT):
         acc_cnn.append(score)
 
-    if(not REPEAT):
+    if (not REPEAT):
         print('Classification Report CNN:')
         print(metrics.classification_report(y_test, pred))
         cm = metrics.confusion_matrix(y_test, pred)
         print('Confusion matrix for CNN:\n', cm)
         plot_cm(cm, disp_labels, 'CNN', plt.cm.Reds, score)
+
 
 # Define and Evaluate a baseline model (Dummy classifier)
 def dc(X_train, X_test, y_train, y_test):
@@ -123,6 +127,7 @@ def dc(X_train, X_test, y_train, y_test):
     evaluate_sk_summary(classifier, X_test, y_test, 'dc', plt.cm.Reds)
     return classifier
 
+
 # Define and Evaluate a Logistic Regression Model
 def lr(X_train, X_test, y_train, y_test):
     classifier = LogisticRegression(solver=solver, random_state=SEED)
@@ -130,12 +135,14 @@ def lr(X_train, X_test, y_train, y_test):
     evaluate_sk_summary(classifier, X_test, y_test, 'lr', plt.cm.Reds)
     return classifier
 
+
 # Define and Evaluate an SVM Model
 def svm(X_train, X_test, y_train, y_test):
     classifier = LinearSVC(random_state=SEED)
     classifier.fit(X_train, y_train)
     evaluate_sk_summary(classifier, X_test, y_test, 'svm', plt.cm.Reds)
     return classifier
+
 
 # Flattens each 8x101 sample to one single long 1x808 vector
 def flattenData(data):
@@ -147,6 +154,7 @@ def flattenData(data):
         X.append(x)
     X = np.array(X)
     return X
+
 
 def splitById(X, y, labels_id):
     id_count = len(np.unique(labels_id))
@@ -160,18 +168,18 @@ def splitById(X, y, labels_id):
     # type of target
     for i in range(0, test_size):
         while True:
-            random_id = random.randint(1, id_count-1)
-            if(i > 0):
+            random_id = random.randint(1, id_count - 1)
+            if (i > 0):
                 id_prev = test_ids[-1]
                 for j in range(0, len(X)):
-                    if(labels_id[j] == id_prev):
+                    if (labels_id[j] == id_prev):
                         label_prev = y[j]
                         break
                 for j in range(0, len(X)):
-                    if(labels_id[j] == random_id):
+                    if (labels_id[j] == random_id):
                         label_curr = y[j]
                         break
-            if(i == 0 or random_id != test_ids[-1] and label_curr != label_prev):
+            if (i == 0 or random_id != test_ids[-1] and label_curr != label_prev):
                 test_ids.append(random_id)
                 break
 
@@ -179,18 +187,18 @@ def splitById(X, y, labels_id):
     for i in range(0, len(X)):
         test = False
         for x in test_ids:
-            if(labels_id[i] == x):
+            if (labels_id[i] == x):
                 test = True
                 break
 
-        if(test):
+        if (test):
             X_test.append(X[i])
             y_test.append(y[i])
         else:
             X_train.append(X[i])
             y_train.append(y[i])
 
-    if(not REPEAT):
+    if (not REPEAT):
         print('==========TRAINING==========')
         for label in set(y):
             print(str(label) + ':', y_train.count(label))
@@ -199,7 +207,7 @@ def splitById(X, y, labels_id):
             print(str(label) + ':', y_test.count(label))
 
         if (SHOW_TEST_IDs):
-            print('(Test IDs:', np.unique(test_ids),')')
+            print('(Test IDs:', np.unique(test_ids), ')')
 
     train_set = list(zip(X_train, y_train))
     random.shuffle(train_set)
@@ -210,6 +218,7 @@ def splitById(X, y, labels_id):
     X_test, y_test = zip(*test_set)
     print(len(y_test))
     return (X_train, X_test, y_train, y_test)
+
 
 def mlModels(data_train_test):
     X_train = flattenData(data_train_test[0])
@@ -222,6 +231,7 @@ def mlModels(data_train_test):
     model_svm = svm(X_train, X_test, y_train, y_test)
 
     return model_dc, model_lr, model_svm
+
 
 def nn(data_train_test):
     X_train = data_train_test[0]
@@ -250,19 +260,22 @@ def nn(data_train_test):
     model_m.add(GlobalAveragePooling1D())
     model_m.add(Dropout(dropout_rate))
     model_m.add(Dense(n_outputs, activation='softmax'))
-    #print(model_m.summary())
-    if(BINARY): loss = 'binary_crossentropy'
-    else: loss = 'categorical_crossentropy'
+    # print(model_m.summary())
+    if (BINARY):
+        loss = 'binary_crossentropy'
+    else:
+        loss = 'categorical_crossentropy'
     model_m.compile(loss=loss,
                     optimizer='adam', metrics=['accuracy'])
 
-    model_m.fit(X_train, y_train, epochs=epochs, verbose=0) # validation_split=TEST_SIZE
+    model_m.fit(X_train, y_train, epochs=epochs, verbose=0)  # validation_split=TEST_SIZE
     evaluate_nn_summary(model_m, X_test, y_test, disp_labels)
     return model_m
 
-#==================================================================================
+
+# ==================================================================================
 #                                   Main
-#==================================================================================
+# ==================================================================================
 def main():
     DATA = 'data' if LABEL != 'abnormality' else 'data_na'
     ID = 'labels_id' if LABEL != 'abnormality' else 'labels_id_na'
@@ -274,26 +287,31 @@ def main():
     with open('..\\classifier_data\\' + ID + '.pickle', 'rb') as f:
         labels_id = pickle.load(f)
 
-    n = REPEAT_AMOUNT if(REPEAT) else 1
+    n = REPEAT_AMOUNT if (REPEAT) else 1
     for _ in trange(n, ncols=100):
         print()
-        if(REPEAT): SEED = random.randint(1, 1000)
-        if(SPLIT_BY_ID):
+        if (REPEAT): SEED = random.randint(1, 1000)
+        if (SPLIT_BY_ID):
             data_train_test = splitById(data, labels, labels_id)
         else:
             data_train_test = train_test_split(data, labels, test_size=TEST_SIZE, shuffle=True, random_state=SEED)
 
         mlModels(data_train_test)
         nn(data_train_test)
-        if(not REPEAT): print('SEED:', SEED)
+        if (not REPEAT): print('SEED:', SEED)
 
-    if(REPEAT):
+    if (REPEAT):
         print("\n,\n,\n,\n,\n, \n,\n,\n,\n,\n, \n,\n,\n,\n,\n")
         print('==== Average of ', n, ' times  ========== ')
-        print('Base classifier: {:.4f} % accuracy with {:.4f} % deviance'.format(mean(acc_dc) * 100, stdev(acc_dc) * 100))
-        print('Logistic Regression: {:.4f} % accuracy with {:.4f} % deviance'.format(mean(acc_lr) * 100, stdev(acc_lr) * 100))
-        print('Support Vector Machine: {:.4f} % accuracy with {:.4f} % deviance'.format(mean(acc_svm) * 100, stdev(acc_svm) * 100))
-        print('Convolutional Neural Network: {:.4f} % accuracy with {:.4f} % deviance'.format(mean(acc_cnn) * 100, stdev(acc_cnn) * 100))
+        print(
+            'Base classifier: {:.4f} % accuracy with {:.4f} % deviance'.format(mean(acc_dc) * 100, stdev(acc_dc) * 100))
+        print('Logistic Regression: {:.4f} % accuracy with {:.4f} % deviance'.format(mean(acc_lr) * 100,
+                                                                                     stdev(acc_lr) * 100))
+        print('Support Vector Machine: {:.4f} % accuracy with {:.4f} % deviance'.format(mean(acc_svm) * 100,
+                                                                                        stdev(acc_svm) * 100))
+        print('Convolutional Neural Network: {:.4f} % accuracy with {:.4f} % deviance'.format(mean(acc_cnn) * 100,
+                                                                                              stdev(acc_cnn) * 100))
+
 
 if __name__ == '__main__':
     main()

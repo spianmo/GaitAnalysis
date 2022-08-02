@@ -1,14 +1,14 @@
-#==================================================================================
+# ==================================================================================
 #                               KINEMATICS_PROCESSING
-#----------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------
 #                    Input: Pose Json and Raw angles, Output: Gait Cycle graphs
 #               Given a JSON describing angles of joints throughout a walk,
 #               Smooth kinematics and averages to one standard gait cycle.
-#==================================================================================
+# ==================================================================================
 #                                   Imports
-#==================================================================================
-# import matplotlib.pyplot as plt  # for debugging
-# from visualizer import plot_raw_all, plot_gcLR  # for debugging
+# ==================================================================================
+import matplotlib.pyplot as plt  # for debugging
+from visualizer import plot_raw_all, plot_gcLR  # for debugging
 from statistics import mean
 from scipy import signal
 import pandas as pd
@@ -17,13 +17,13 @@ import json
 import math
 import time
 
-#==================================================================================
+# ==================================================================================
 #                                   Constants
-#==================================================================================
+# ==================================================================================
 ptID = {
     'nose': 0,
-    'eye_L': 1,'eye_R': 2,
-    'ear_L': 3,'ear_R': 4,
+    'eye_L': 1, 'eye_R': 2,
+    'ear_L': 3, 'ear_R': 4,
     'shoulder_L': 5, 'shoulder_R': 6,
     'elbow_L': 7, 'elbow_R': 8,
     'wrist_L': 9, 'wrist_R': 10,
@@ -35,14 +35,16 @@ ptID = {
 red = "#FF4A7E"
 blue = "#72B6E9"
 
-#==================================================================================
+
+# ==================================================================================
 #                                   Methods
-#==================================================================================
+# ==================================================================================
 # Filling in gaps, to cater for low confidence in estimation
 def gapfill(angleList):
     df = pd.DataFrame({'ang': angleList})
     df['ang'].interpolate(method='linear', inplace=True)
     return df['ang'].tolist()
+
 
 # Fills gaps of left and right kinematics
 def gapfillLR(angLR):
@@ -54,19 +56,22 @@ def gapfillLR(angLR):
     angLR_filled = [filledL, filledR]
     return angLR_filled
 
+
 # Exponential moving average for a list (naive smoothing)
 def smooth(angle_list, weight):  # Weight between 0 and 1
     last = angle_list[0]  # First value in the plot (first timestep)
     smoothed = []
     for angle in angle_list:
-        if(math.isnan(angle) or math.isnan(last)): # Caters for no person detecion, which shouldn't occur with this pipeline due to gap filling
+        if (math.isnan(angle) or math.isnan(
+                last)):  # Caters for no person detecion, which shouldn't occur with this pipeline due to gap filling
             smoothed.append(None)
             last = angle
         else:
             smoothed_val = last * weight + (1 - weight) * angle  # Calculate smoothed value
             smoothed.append(smoothed_val)
-            last = smoothed_val # Anchor the last smoothed value
+            last = smoothed_val  # Anchor the last smoothed value
     return smoothed
+
 
 def smoothLR(angles_list, weight):
     angles_L = angles_list[0]
@@ -76,6 +81,7 @@ def smoothLR(angles_list, weight):
     smoothed_LR = [smooth_L, smooth_R]
 
     return smoothed_LR
+
 
 # Returns list of frames where step on of a particular leg occurs
 def getStepOnFrames(dataS, L_or_R, diff_thresh, N, avg_thresh):
@@ -93,7 +99,7 @@ def getStepOnFrames(dataS, L_or_R, diff_thresh, N, avg_thresh):
         ankle_Y = ankle_pos[1]
 
         # first frame neglected as the algorithm checks the previous frame every time
-        if (i > 0 and (ankle_pos != [-1,-1] and ankle_points[-1] != [-1,-1]) ):
+        if (i > 0 and (ankle_pos != [-1, -1] and ankle_points[-1] != [-1, -1])):
             ankle_pos_prev = ankle_points[-1]
             ankle_X_prev = ankle_pos_prev[0]
             ankle_Y_prev = ankle_pos_prev[1]
@@ -101,36 +107,38 @@ def getStepOnFrames(dataS, L_or_R, diff_thresh, N, avg_thresh):
             X_diff = ankle_X - ankle_X_prev
             Y_diff = ankle_Y - ankle_Y_prev
 
-            diff = pow(pow(Y_diff, 2) + pow(X_diff, 2), 1/2)
+            diff = pow(pow(Y_diff, 2) + pow(X_diff, 2), 1 / 2)
             if (diff < diff_thresh): isGrounded = True
 
             isGrounded_recent = isGrounded_srs[-N:]
-            isGrounded_avg = sum(isGrounded_recent)/len(isGrounded_recent)
+            isGrounded_avg = sum(isGrounded_recent) / len(isGrounded_recent)
 
             # print(i, ankle_pos, abs_diff, isGrounded, isGrounded_avg)
 
-            if(seekStepOn):
-                if(isGrounded_avg > avg_thresh):
-                    stepOnFrames.append(i-N)
+            if (seekStepOn):
+                if (isGrounded_avg > avg_thresh):
+                    stepOnFrames.append(i - N)
                     seekStepOn = False
             else:
-                if(isGrounded_avg == 0):
+                if (isGrounded_avg == 0):
                     seekStepOn = True
         ankle_points.append(ankle_pos)
         isGrounded_srs.append(isGrounded)
     return stepOnFrames
 
+
 # Returns set of subsets for gait cycles
 def gaitCycle_filter(angle_list, stepOnFrames):
-    gc = [] # gait cycle list to store subsets
+    gc = []  # gait cycle list to store subsets
     for i in range(len(stepOnFrames) - 1, 0, -1):
         end = stepOnFrames[i] - 1
-        start = stepOnFrames[i-1]
+        start = stepOnFrames[i - 1]
 
-        if(start >= 0):
+        if (start >= 0):
             subset = angle_list[start:end]
             gc.append(subset)
     return gc
+
 
 # Returns right and left gait cycles of angle list
 def gcLR(angleList, stepOnFrames_L, stepOnFrames_R):
@@ -139,21 +147,25 @@ def gcLR(angleList, stepOnFrames_L, stepOnFrames_R):
     gc = [gc_L, gc_R]
     return gc
 
+
 # Removes short gait cycles relative to the longest gait cycle
 def gcLR_removeShort(gcLR1, gcLR2, gcLR3, gcLR4):
     len_gc_L = [len(x) for x in gcLR1[0]]
     len_gc_R = [len(x) for x in gcLR1[1]]
-    
+
+    if len(len_gc_L) == 0 or len(len_gc_R):
+        return [[], []], [[], []], [[], []], [[], []]
+
     thresh_gc_LR_short = [0.7 * mean(len_gc_L), 0.7 * mean(len_gc_R)]
     thresh_gc_LR_long = [1.3 * mean(len_gc_L), 1.3 * mean(len_gc_R)]
-    
+
     # Removes from left then right
     for h in range(0, 2):
         i = 0
         limit = len(gcLR1[h])
         while True:
             len_gc = len(gcLR1[h][i])
-            if(len_gc <= thresh_gc_LR_short[h] or len_gc >= thresh_gc_LR_long[h]):
+            if (len_gc <= thresh_gc_LR_short[h] or len_gc >= thresh_gc_LR_long[h]):
                 del gcLR1[h][i]
                 del gcLR2[h][i]
                 del gcLR3[h][i]
@@ -162,10 +174,10 @@ def gcLR_removeShort(gcLR1, gcLR2, gcLR3, gcLR4):
                 limit -= 1
 
             i += 1
-            if(i >= limit): break
+            if (i >= limit): break
 
-            
     return gcLR1, gcLR2, gcLR3, gcLR4
+
 
 # Normalizes the xrange to a sample of N data points
 def resample_gcLR(gcLR, N):
@@ -174,25 +186,26 @@ def resample_gcLR(gcLR, N):
     gcLR_resampled = [[], []]
 
     for angleList in gcL:
-        for i in range(0,len(angleList)):
-            if(angleList[i] == None):
+        for i in range(0, len(angleList)):
+            if (angleList[i] == None):
                 angleList[i] = 0
         angleListL = signal.resample(angleList, N)
         gcLR_resampled[0].append(angleListL.tolist())
 
     for angleList in gcR:
-        for i in range(0,len(angleList)):
-            if(angleList[i] == None):
+        for i in range(0, len(angleList)):
+            if (angleList[i] == None):
                 angleList[i] = 0
         angleListR = signal.resample(angleList, N)
         gcLR_resampled[1].append(angleListR.tolist())
 
     return gcLR_resampled
 
+
 # Returns average of left and right gait cycles respectively
 def avg_gcLR(gcLR):
-    gcL = np.array(gcLR[0]) # list of left gait cycles
-    gcR = np.array(gcLR[1]) # list of right gait cycles
+    gcL = np.array(gcLR[0])  # list of left gait cycles
+    gcR = np.array(gcLR[1])  # list of right gait cycles
 
     gcL_avg = np.mean(gcL, axis=0)
     gcL_std = np.std(gcL, axis=0)
@@ -201,14 +214,15 @@ def avg_gcLR(gcLR):
     gcR_std = np.std(gcR, axis=0)
 
     avg_gcLR = {
-        'gcL_avg' : gcL_avg.tolist(),
-        'gcL_std' : gcL_std.tolist(),
+        'gcL_avg': gcL_avg.tolist(),
+        'gcL_std': gcL_std.tolist(),
         'gcR_avg': gcR_avg.tolist(),
         'gcR_std': gcR_std.tolist(),
-        'gcL_count' : len(gcL),
-        'gcR_count' : len(gcR)
+        'gcL_count': len(gcL),
+        'gcR_count': len(gcR)
     }
     return avg_gcLR
+
 
 def kinematics_process(poseFile, anglesFile, writeFile):
     with open(poseFile, 'r') as f:
@@ -251,10 +265,10 @@ def kinematics_process(poseFile, anglesFile, writeFile):
         knee_AbdAdd1 = smoothLR(knee_AbdAdd0, weight)
         hip_AbdAdd1 = smoothLR(hip_AbdAdd0, weight)
 
-        #plot_raw_all(knee_FlexExt1, hip_FlexExt1, knee_AbdAdd1, hip_AbdAdd1)  # for debugging
+        plot_raw_all(knee_FlexExt1, hip_FlexExt1, knee_AbdAdd1, hip_AbdAdd1)  # for debugging
 
         # Slicing into gait cycles
-        stepOnFrames_L = getStepOnFrames(dataS, 'L', 2.2, 8, 0.8) # 8
+        stepOnFrames_L = getStepOnFrames(dataS, 'L', 2.2, 8, 0.8)  # 8
         stepOnFrames_R = getStepOnFrames(dataS, 'R', 2.2, 8, 0.8)
         knee_FlexExt2 = gcLR(knee_FlexExt1, stepOnFrames_L, stepOnFrames_R)
         hip_FlexExt2 = gcLR(hip_FlexExt1, stepOnFrames_L, stepOnFrames_R)
@@ -263,7 +277,7 @@ def kinematics_process(poseFile, anglesFile, writeFile):
 
         # Removing gait cycles that are relatively too short to be correct
         knee_FlexExt2, hip_FlexExt2, knee_AbdAdd2, hip_AbdAdd2 = gcLR_removeShort(knee_FlexExt2, hip_FlexExt2,
-                                                                                 knee_AbdAdd2, hip_AbdAdd2)
+                                                                                  knee_AbdAdd2, hip_AbdAdd2)
 
         # Resampling to 100 (100 and 0 inclusive)
         knee_FlexExt3 = resample_gcLR(knee_FlexExt2, 101)
@@ -271,7 +285,7 @@ def kinematics_process(poseFile, anglesFile, writeFile):
         knee_AbdAdd3 = resample_gcLR(knee_AbdAdd2, 101)
         hip_AbdAdd3 = resample_gcLR(hip_AbdAdd2, 101)
 
-        #plot_gcLR(hip_FlexExt2, 'hip flex/ext')  # for debugging
+        plot_gcLR(hip_FlexExt2, 'hip flex/ext')  # for debugging
 
         # Adding to global gait cycle instances list
         for gc in knee_FlexExt3[0]: knee_FlexExt_gc[0].append(gc)
@@ -307,19 +321,22 @@ def kinematics_process(poseFile, anglesFile, writeFile):
     with open(writeFile, 'w') as outfile:
         json.dump(jsonDict, outfile, separators=(',', ':'))
 
-#==================================================================================
+
+# ==================================================================================
 #                                   Main
-#==================================================================================
+# ==================================================================================
 def main():
-    for i in range(1, 22):
-        if(len(str(i)) < 2): i = '0' + str(i)
-        path = '..\\Part' + str(i) + '\\'
+    for i in range(1, 2):
+        if (len(str(i)) < 2): i = '0' + str(i)
+        path = '.\\Part\\Part' + str(i) + '\\'
         poseFile = path + 'Part' + str(i) + '_pose.json'
         anglesFile = path + 'Part' + str(i) + '_angles.json'
         writeFile = path + 'Part' + str(i) + '_gc.json'
         start_time = time.time()
         kinematics_process(poseFile, anglesFile, writeFile)
-        print('Kinematics processed and saved in', '\"'+writeFile+'\"', '[Time:', '{0:.2f}'.format(time.time() - start_time), 's]')
+        print('Kinematics processed and saved in', '\"' + writeFile + '\"', '[Time:',
+              '{0:.2f}'.format(time.time() - start_time), 's]')
+
 
 if __name__ == '__main__':
     main()

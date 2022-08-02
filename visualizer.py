@@ -1,12 +1,12 @@
-#==================================================================================
+# ==================================================================================
 #                               VISUALIZER
-#----------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------
 #                    Input: JSON, Output: Debugging plots / Gifs
 #               Visualizes saved graph structure of poses, as well as
 #               saved raw kinematics, and processed kinematics
-#==================================================================================
+# ==================================================================================
 #                                   Imports
-#==================================================================================
+# ==================================================================================
 import numpy as np
 import matplotlib.pyplot as plt
 import json
@@ -16,19 +16,19 @@ import imageio
 from tqdm import trange
 import matplotlib.gridspec as gridspec
 
-#==================================================================================
+# ==================================================================================
 #                                   Constants
-#==================================================================================
+# ==================================================================================
 joint_pairs = [[0, 1], [1, 3], [0, 2], [2, 4],
-                   [5, 6], [5, 7], [7, 9], [6, 8], [8, 10],
-                   [5, 11], [6, 12], [11, 12],
-                   [11, 13], [12, 14], [13, 15], [14, 16]]
+               [5, 6], [5, 7], [7, 9], [6, 8], [8, 10],
+               [5, 11], [6, 12], [11, 12],
+               [11, 13], [12, 14], [13, 15], [14, 16]]
 colormap_index = np.linspace(0, 1, len(joint_pairs))
 
 ptID = {
     'nose': 0,
-    'eye_L': 1,'eye_R': 2,
-    'ear_L': 3,'ear_R': 4,
+    'eye_L': 1, 'eye_R': 2,
+    'ear_L': 3, 'ear_R': 4,
     'shoulder_L': 5, 'shoulder_R': 6,
     'elbow_L': 7, 'elbow_R': 8,
     'wrist_L': 9, 'wrist_R': 10,
@@ -39,25 +39,28 @@ ptID = {
 
 red = "#FF4A7E"
 blue = "#72B6E9"
-#==================================================================================
+
+
+# ==================================================================================
 #                                   Methods
-#==================================================================================
+# ==================================================================================
 # Speeds up gif
 def gif_speedup(filename):
     gif = imageio.mimread(filename, memtest=False)
-    imageio.mimsave(filename, gif, duration=1/30)
+    imageio.mimsave(filename, gif, duration=1 / 30)
+
 
 # Saves gif of pose estimation in a capture
 def gif_pose(poseFile, i, outpath):
     with open(poseFile, 'r') as f:
         jsonPose = json.load(f)
 
-    dataS = jsonPose[i]['dataS']
-    dimS = jsonPose[i]['dimS']
-    dataF = jsonPose[i]['dataF']
-    dimF = jsonPose[i]['dimF']
-    capId = jsonPose[i]['capId']
-    partId = jsonPose[i]['partId']
+    dataS = jsonPose[i-1]['dataS']
+    dimS = jsonPose[i-1]['dimS']
+    dataF = jsonPose[i-1]['dataF']
+    dimF = jsonPose[i-1]['dimF']
+    capId = jsonPose[i-1]['capId']
+    partId = jsonPose[i-1]['partId']
 
     filename = outpath + partId + '-' + capId + '-PE.gif'
     ims = []  # List of images for gif
@@ -105,7 +108,8 @@ def gif_pose(poseFile, i, outpath):
     im.save(filename, save_all=True, append_images=ims, duration=0, loop=0)
     buf.close()
     gif_speedup(filename)
-    print('Saved as', '\"'+filename+'\"')
+    print('Saved as', '\"' + filename + '\"')
+
 
 # Returns x and y lists of leg catering for no keypoint detection
 def leg_points(pose, L_or_R):
@@ -127,6 +131,7 @@ def leg_points(pose, L_or_R):
 
     return x, y
 
+
 # Saves gif describing flexion/extension angle extraction from side view
 def gif_flexext(poseFile, anglesFile, i, outpath):
     with open(poseFile, 'r') as f:
@@ -134,12 +139,12 @@ def gif_flexext(poseFile, anglesFile, i, outpath):
     with open(anglesFile, 'r') as f:
         jsonAngles = json.load(f)
 
-    dataS = jsonPose[i]['dataS']
-    dimS = jsonPose[i]['dimS']
-    capId = jsonPose[i]['capId']
-    partId = jsonPose[i]['partId']
-    knee_FlexExt = jsonAngles[i]['knee_FlexExt']
-    hip_FlexExt = jsonAngles[i]['hip_FlexExt']
+    dataS = jsonPose[i-1]['dataS']
+    dimS = jsonPose[i-1]['dimS']
+    capId = jsonPose[i-1]['capId']
+    partId = jsonPose[i-1]['partId']
+    knee_FlexExt = jsonAngles[i-1]['knee_FlexExt']
+    hip_FlexExt = jsonAngles[i-1]['hip_FlexExt']
 
     filename = outpath + partId + '-' + capId + '-FE.gif'
     ims = []  # List of images for gif
@@ -199,12 +204,12 @@ def gif_abdadd(poseFile, anglesFile, i, outpath):
     with open(anglesFile, 'r') as f:
         jsonAngles = json.load(f)
 
-    dataF = jsonPose[i]['dataF']
-    dimF = jsonPose[i]['dimF']
-    capId = jsonPose[i]['capId']
-    partId = jsonPose[i]['partId']
-    knee_AbdAdd = jsonAngles[i]['knee_AbdAdd']
-    hip_AbdAdd = jsonAngles[i]['hip_AbdAdd']
+    dataF = jsonPose[i-1]['dataF']
+    dimF = jsonPose[i-1]['dimF']
+    capId = jsonPose[i-1]['capId']
+    partId = jsonPose[i-1]['partId']
+    knee_AbdAdd = jsonAngles[i-1]['knee_AbdAdd']
+    hip_AbdAdd = jsonAngles[i-1]['hip_AbdAdd']
 
     filename = outpath + partId + '-' + capId + '-AA.gif'
     ims = []  # List of images for gif
@@ -256,17 +261,21 @@ def gif_abdadd(poseFile, anglesFile, i, outpath):
     gif_speedup(filename)
     print('Saved as', '\"' + filename + '\"')
 
+
 # Plots kinematics of left or right leg, used for viewing all gait cycles
 def plot_angles(angleList, title, isRed):
-    if(isRed): color = red
-    else: color = blue
+    if (isRed):
+        color = red
+    else:
+        color = blue
     fig, ax = plt.subplots()
     ax.set_title(title)
-    ax.set_xlabel('Time (%)') #
+    ax.set_xlabel('Time (%)')  #
     ax.set_ylabel(r"${\Theta}$ (degrees)")
     ax.plot(angleList, color=color)
     plt.show()
     plt.close()
+
 
 # Plots kinematics of left or right leg, used for viewing all gait cycles
 def plot_anglesLR(angleList, title, xlabel):
@@ -281,15 +290,18 @@ def plot_anglesLR(angleList, title, xlabel):
     plt.show()
     plt.close()
 
+
 # Plots each angle list gait cycle in list
 def plot_gc(gc, title, isRed):
     for angleList in gc:
         plot_angles(angleList, title, isRed)
 
+
 # Plots left and right gait cycles
 def plot_gcLR(gcLR, title):
     plot_gc(gcLR[0], title, True)
     plot_gc(gcLR[1], title, False)
+
 
 # Plots average as well as standard deviation
 def plot_avg(avg, std, title, N, isRed):
@@ -311,6 +323,7 @@ def plot_avg(avg, std, title, N, isRed):
     ax.plot(std1_gcL, '--', color=color)
     ax.plot(std2_gcL, '--', color=color)
 
+
 # Plots left and right average as well as standard deviation
 def plot_avg_gcLR(avg_LR, title, plotSep):
     avg_gcL = avg_LR['gcL_avg']
@@ -320,13 +333,13 @@ def plot_avg_gcLR(avg_LR, title, plotSep):
     N_L = avg_LR['gcL_count']
     N_R = avg_LR['gcR_count']
 
-    if(not plotSep):
+    if (not plotSep):
         leftMax = len(avg_gcL) - 1
         rightMax = len(avg_gcR) - 1
         xmax = max(leftMax, rightMax)
         fig, ax = plt.subplots()
         ax.set_title(title + ' (' + str(N_L) + 'L, ' + str(N_R) + 'R Gait Cycles)')
-        ax.set_xlabel('Frame') # Time (%)
+        ax.set_xlabel('Frame')  # Time (%)
         ax.set_ylabel(r"${\Theta}$ (degrees)")
         ax.plot(avg_gcL, color=red)
         ax.plot(avg_gcR, color=blue)
@@ -338,6 +351,7 @@ def plot_avg_gcLR(avg_LR, title, plotSep):
         plot_avg(avg_gcR, std_gcR, title, N_R, isRed=False)
         plt.show()
         plt.close()
+
 
 def plot_avg_gcLR_all(gcFile):
     with open(gcFile, 'r') as f:
@@ -354,10 +368,11 @@ def plot_avg_gcLR_all(gcFile):
     plot_avg_gcLR(hip_AbdAdd_avg, 'Hip Abduction/Adduction', plotSep=False)
 
     # Uncomment what is necessary for gait cycle display
-    #plot_gcLR(gc['knee_FlexExt_gc'], 'Knee Flexion/Extension')
-    #plot_gcLR(gc['hip_FlexExt_gc'], 'Hip Flexion/Extension')
-    #plot_gcLR(gc['knee_AbdAdd_gc'], 'Knee Abduction/Adduction')
-    #plot_gcLR(gc['hip_AbdAdd_gc'], 'Knee Flexion/Extension')
+    # plot_gcLR(gc['knee_FlexExt_gc'], 'Knee Flexion/Extension')
+    # plot_gcLR(gc['hip_FlexExt_gc'], 'Hip Flexion/Extension')
+    # plot_gcLR(gc['knee_AbdAdd_gc'], 'Knee Abduction/Adduction')
+    # plot_gcLR(gc['hip_AbdAdd_gc'], 'Knee Flexion/Extension')
+
 
 def plot_raw_all(kneeFlexExt, hipFlexExt, kneeAbdAdd, hipAbdAdd):
     plot_anglesLR(kneeFlexExt, 'Knee Flexion/Extension', 'Frame')
@@ -365,27 +380,31 @@ def plot_raw_all(kneeFlexExt, hipFlexExt, kneeAbdAdd, hipAbdAdd):
     plot_anglesLR(kneeAbdAdd, 'Knee Abduction/Adduction', 'Frame')
     plot_anglesLR(hipAbdAdd, 'Hip Abduction/Adduction', 'Frame')
 
+
 def plot_raw_all_file(anglesFile, i):
     with open(anglesFile, 'r') as f:
         jsonAngles = json.load(f)
-    plot_raw_all(jsonAngles[i]['knee_FlexExt'], jsonAngles[i]['hip_FlexExt'], jsonAngles[i]['knee_AbdAdd'], jsonAngles[i]['hip_AbdAdd'])
+    plot_raw_all(jsonAngles[i]['knee_FlexExt'], jsonAngles[i]['hip_FlexExt'], jsonAngles[i]['knee_AbdAdd'],
+                 jsonAngles[i]['hip_AbdAdd'])
+
 
 def main():
-    i = '05'  # input('Enter participant code')
-    path = '..\\Part' + str(i) + '\\'
+    i = '01'  # input('Enter participant code')
+    path = '.\\Part\\Part' + str(i) + '\\'
     poseFile = path + 'Part' + str(i) + '_pose.json'
     anglesFile = path + 'Part' + str(i) + '_angles.json'
-    #gcFile = path + 'Part' + str(i) + '_gc.json'
-    #plot_avg_gcLR_all(gcFile)
-    #plot_raw_all_file(anglesFile, 2)
+    # gcFile = path + 'Part' + str(i) + '_gc.json'
+    # plot_avg_gcLR_all(gcFile)
+    # plot_raw_all_file(anglesFile, 2)
 
-    i = 1 # The gait number
+    i = 1  # The gait number
     gif_pose(poseFile, i, path)
     gif_flexext(poseFile, anglesFile, i, path)
     gif_abdadd(poseFile, anglesFile, i, path)
 
-#==================================================================================
+
+# ==================================================================================
 #                                   Main
-#==================================================================================
+# ==================================================================================
 if __name__ == '__main__':
     main()

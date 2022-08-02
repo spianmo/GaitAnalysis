@@ -1,33 +1,35 @@
-#==================================================================================
+# ==================================================================================
 #                             PLUG IN-GAIT PARSING
-#----------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------
 #                       Input: Excel data, Output: JSON
 #                  Parses gait cycle excel data processed using
 #              Vicon Plug-In-Gait model with marker-based motion capture
-#==================================================================================
+# ==================================================================================
 #                                   Imports
-#==================================================================================
+# ==================================================================================
 import json
 import numpy as np
 import pandas as pd
 
-#==================================================================================
+
+# ==================================================================================
 #                                   Methods
-#==================================================================================
+# ==================================================================================
 # Filling in gaps, to cater for ray occlusions in plug in gait
 def gapfill(angleList):
     df = pd.DataFrame({'ang': angleList})
     df['ang'].interpolate(method='linear', inplace=True)
     angleList = df['ang'].tolist()
     for i in range(0, len(angleList)):
-        if(np.isnan(angleList[i])):
+        if (np.isnan(angleList[i])):
             angleList[i] = angleList[i + 1]
     return angleList
 
+
 # Returns average of left and right gait cycles respectively
 def avg_gcLR(gcLR):
-    gcL = np.array(gcLR[0]) # list of left gait cycles
-    gcR = np.array(gcLR[1]) # list of right gait cycles
+    gcL = np.array(gcLR[0])  # list of left gait cycles
+    gcR = np.array(gcLR[1])  # list of right gait cycles
 
     gcL_avg = np.mean(gcL, axis=0)
     gcL_std = np.std(gcL, axis=0)
@@ -36,20 +38,22 @@ def avg_gcLR(gcLR):
     gcR_std = np.std(gcR, axis=0)
 
     avg_gcLR = {
-        'gcL_avg' : gcL_avg.tolist(),
-        'gcL_std' : gcL_std.tolist(),
+        'gcL_avg': gcL_avg.tolist(),
+        'gcL_std': gcL_std.tolist(),
         'gcR_avg': gcR_avg.tolist(),
         'gcR_std': gcR_std.tolist(),
-        'gcL_count' : len(gcL),
-        'gcR_count' : len(gcR)
+        'gcL_count': len(gcL),
+        'gcR_count': len(gcR)
     }
     return avg_gcLR
-#==================================================================================
+
+
+# ==================================================================================
 #                                   Main
-#==================================================================================
+# ==================================================================================
 def main():
     i = '05'  # Select participant with marker-based kinematic data
-    filePath = '..\\Part'+ i + '\\'
+    filePath = '..\\Part' + i + '\\'
     filePIG = filePath + 'Part' + i + '_gc_pig.xlsx'
     writeFile = filePath + 'Part' + i + '_gc_pig.json'
 
@@ -74,13 +78,13 @@ def main():
 
         i = 0
         # Batch parsing gait cycles
-        while(True):
+        while (True):
             try:
                 isDetected[i]
             except IndexError:
                 break
 
-            if(isDetected[i]):
+            if (isDetected[i]):
                 gc = gapfill(gaitCycleData[i])
                 hip_FlexExt_gc[1].append(gc)
             if (isDetected[i + 1]):
@@ -104,7 +108,7 @@ def main():
 
             # Try catch because if this is the last batch, 7th line can be cut short
             try:
-                isDetected[i+7]
+                isDetected[i + 7]
             except IndexError:
                 break
 
@@ -130,12 +134,13 @@ def main():
         'hip_FlexExt_gc': hip_FlexExt_gc,
         'knee_AbdAdd_gc': knee_AbdAdd_gc,
         'hip_AbdAdd_gc': hip_AbdAdd_gc,
-        }
+    }
 
     with open(writeFile, 'w') as outfile:
         json.dump(jsonDict, outfile, separators=(',', ':'))
 
     print('Finished!')
+
 
 if __name__ == '__main__':
     main()

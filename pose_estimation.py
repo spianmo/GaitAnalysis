@@ -1,15 +1,15 @@
-#==================================================================================
+# ==================================================================================
 #                               POSE ESTIMATION
-#----------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------
 #                           Input: Video x 2, Output: JSON
 #               Given a front/back view and side view video of someone
 #               walking, this will generate a json, describing the pose
 #               via key-points in graph form, throughout every frame.
-#==================================================================================
+# ==================================================================================
 
-#==================================================================================
+# ==================================================================================
 #                                   Imports
-#==================================================================================
+# ==================================================================================
 from __future__ import division
 from gluoncv.data.transforms.pose import detector_to_alpha_pose, heatmap_to_coord_alpha_pose
 from gluoncv.model_zoo import get_model
@@ -21,11 +21,11 @@ import json
 import glob
 import os
 
-#==================================================================================
+# ==================================================================================
 #                                   AI Detectors
 #                        Person detector; YOLO via GPU.
 #                Pose Estimator; AlphaPose via CPU (no GPU support).
-#==================================================================================
+# ==================================================================================
 ctx = mx.gpu(0)
 detector = get_model('yolo3_mobilenet1.0_coco', pretrained=True, ctx=ctx)
 detector.reset_class(classes=['person'], reuse_weights={'person': 'person'})
@@ -33,30 +33,32 @@ estimator = get_model('alpha_pose_resnet101_v1b_coco', pretrained='de56b871')
 detector.hybridize()
 estimator.hybridize()
 
-#==================================================================================
+
+# ==================================================================================
 #                                   Methods
-#==================================================================================
+# ==================================================================================
 # Returns a keypoints with respect to the current frame's pose
 def curr_pose(img, coords, confidence, scores, keypoint_thresh=0.2):
-    i = scores.argmax() # gets index of most confident bbox estimation
-    pts = coords[i] # coords of most confident pose in frame
+    i = scores.argmax()  # gets index of most confident bbox estimation
+    pts = coords[i]  # coords of most confident pose in frame
 
     pose_data = []
 
     for j in range(0, len(pts)):
         x = -1
         y = -1
-        if(confidence[i][j] > keypoint_thresh):
+        if (confidence[i][j] > keypoint_thresh):
             x = int(pts[j][0])
             y = int(img.shape[0] - pts[j][1])
-        pose_data.append([x,y])
+        pose_data.append([x, y])
 
     return pose_data
 
+
 # Given one video, returns list of pose information in preparation for json file
 def video_to_listPose(vid):
-    cap = cv2.VideoCapture(vid) # load video
-    if (cap.isOpened() == False): # Check if camera opened successfully
+    cap = cv2.VideoCapture(vid)  # load video
+    if (cap.isOpened() == False):  # Check if camera opened successfully
         print("Error opening video stream or file")
         return
 
@@ -69,11 +71,11 @@ def video_to_listPose(vid):
     pbar.ncols = 100
 
     # Iterate through every frame in video
-    while(cap.isOpened()):
-        ret, frame = cap.read() # read current frame
+    while (cap.isOpened()):
+        ret, frame = cap.read()  # read current frame
         if (frame is None):
-            break # If current frame doesn't exist, finished iterating through frames
-        frame = mx.nd.array(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)).astype('uint8') # mxnet readable
+            break  # If current frame doesn't exist, finished iterating through frames
+        frame = mx.nd.array(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)).astype('uint8')  # mxnet readable
 
         # Person detection
         x, frame = gcv.data.transforms.presets.yolo.transform_test(frame)  # short=406, max_size=1024
@@ -83,10 +85,10 @@ def video_to_listPose(vid):
         pose_input, upscale_bbox = detector_to_alpha_pose(frame, class_IDs, scores, bounding_boxs,
                                                           output_shape=(320, 256))
         # Gets current pose keypoints
-        if (upscale_bbox is None): # Caters for no person detection
+        if (upscale_bbox is None):  # Caters for no person detection
             pbar.set_description_str('Skipping  ')
             pose_data_curr = [[-1, -1] for j in range(0, 17)]
-        else: # Caters for person detection
+        else:  # Caters for person detection
             pbar.set_description_str('Processing')
             predicted_heatmap = estimator(pose_input)
             pred_coords, confidence = heatmap_to_coord_alpha_pose(predicted_heatmap, upscale_bbox)
@@ -108,37 +110,43 @@ def video_to_listPose(vid):
 
     return dimensions, pose_data_vid
 
+
 # Given two videos it will output the json describing all poses in both videos
 def videos_to_jsonPose(vidSide, vidFront, partId, capId):
     dimensions_side, pose_vid_side = video_to_listPose(vidSide)
     dimensions_front, pose_vid_front = video_to_listPose(vidFront)
 
-    if(dimensions_side != dimensions_front):
-        print('Warning: side video', dimensions_side, 'and front video', dimensions_front, 'of different dimensions' )
+    if (dimensions_side != dimensions_front):
+        print('Warning: side video', dimensions_side, 'and front video', dimensions_front, 'of different dimensions')
 
     if (len(pose_vid_side) != len(pose_vid_front)):
-        print('Warning: side video', len(pose_vid_side), 'and front video', len(pose_vid_front), 'of different frame counts')
+        print('Warning: side video', len(pose_vid_side), 'and front video', len(pose_vid_front),
+              'of different frame counts')
 
     jsonPose_dict = {
         'partId': partId,
         'capId': capId,
         'dimS': dimensions_side,
-        'lenS' : len(pose_vid_side),
-        'dimF' : dimensions_front,
-        'lenF' : len(pose_vid_front),
-        'dataS' : pose_vid_side,
-        'dataF' : pose_vid_front
+        'lenS': len(pose_vid_side),
+        'dimF': dimensions_front,
+        'lenF': len(pose_vid_front),
+        'dataS': pose_vid_side,
+        'dataF': pose_vid_front
     }
     return jsonPose_dict
+
 
 def estimate_poses(path, writeFile):
     jsonPose_list = []
     fs_pair = []
     i = 0
+    print(os.path.join(path, '*.avi'))
     for filename in glob.glob(os.path.join(path, '*.avi')):
         fs_pair.append(filename)
+        print(filename)
         if (i % 2):
-            print('Capture pair', '('+ str(int((i+1)/2)) +'/6)', ':', '\"'+fs_pair[1]+'\"', ',', '\"'+fs_pair[0]+'\"')
+            print('Capture pair', '(' + str(int((i + 1) / 2)) + '/6)', ':', '\"' + fs_pair[1] + '\"', ',',
+                  '\"' + fs_pair[0] + '\"')
             capId = fs_pair[0].split('-')[1]
             partId = fs_pair[0].split('-')[0].split('\\')[2]
             jsonPose_dict = videos_to_jsonPose(fs_pair[1], fs_pair[0], partId, capId)
@@ -149,17 +157,26 @@ def estimate_poses(path, writeFile):
     with open(writeFile, 'w') as outfile:
         json.dump(jsonPose_list, outfile, separators=(',', ':'))
 
-#==================================================================================
+
+# ==================================================================================
 #                                   Main
-#==================================================================================
+# ==================================================================================
 def main():
-    for i in range(1, 22):
+    for i in range(1, 2):
         if (len(str(i)) < 2): i = '0' + str(i)
-        path = '..\\Part' + str(i) + '\\'
+        path = '.\\Part\\Part' + str(i) + '\\'
+        if not os.path.exists(path):
+            os.makedirs(path)
+
         writeFile = path + 'Part' + str(i) + '_pose.json'
+        if not os.path.exists(writeFile):
+            f = open(writeFile, 'w')
+            f.close()
         start_time = time.time()
         estimate_poses(path, writeFile)
-        print('Poses estimated and saved in', '\"'+writeFile+'\"', '[Time:', '{0:.2f}'.format(time.time() - start_time), 's]')
+        print('Poses estimated and saved in', '\"' + writeFile + '\"', '[Time:',
+              '{0:.2f}'.format(time.time() - start_time), 's]')
+
 
 if __name__ == '__main__':
     main()
