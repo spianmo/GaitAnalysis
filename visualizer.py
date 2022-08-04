@@ -55,12 +55,12 @@ def gif_pose(poseFile, i, outpath):
     with open(poseFile, 'r') as f:
         jsonPose = json.load(f)
 
-    dataS = jsonPose[i-1]['dataS']
-    dimS = jsonPose[i-1]['dimS']
-    dataF = jsonPose[i-1]['dataF']
-    dimF = jsonPose[i-1]['dimF']
-    capId = jsonPose[i-1]['capId']
-    partId = jsonPose[i-1]['partId']
+    dataS = jsonPose[i - 1]['dataS']
+    dimS = jsonPose[i - 1]['dimS']
+    dataF = jsonPose[i - 1]['dataF']
+    dimF = jsonPose[i - 1]['dimF']
+    capId = jsonPose[i - 1]['capId']
+    partId = jsonPose[i - 1]['partId']
 
     filename = outpath + partId + '-' + capId + '-PE.gif'
     ims = []  # List of images for gif
@@ -139,12 +139,12 @@ def gif_flexext(poseFile, anglesFile, i, outpath):
     with open(anglesFile, 'r') as f:
         jsonAngles = json.load(f)
 
-    dataS = jsonPose[i-1]['dataS']
-    dimS = jsonPose[i-1]['dimS']
-    capId = jsonPose[i-1]['capId']
-    partId = jsonPose[i-1]['partId']
-    knee_FlexExt = jsonAngles[i-1]['knee_FlexExt']
-    hip_FlexExt = jsonAngles[i-1]['hip_FlexExt']
+    dataS = jsonPose[i - 1]['dataS']
+    dimS = jsonPose[i - 1]['dimS']
+    capId = jsonPose[i - 1]['capId']
+    partId = jsonPose[i - 1]['partId']
+    knee_FlexExt = jsonAngles[i - 1]['knee_FlexExt']
+    hip_FlexExt = jsonAngles[i - 1]['hip_FlexExt']
 
     filename = outpath + partId + '-' + capId + '-FE.gif'
     ims = []  # List of images for gif
@@ -204,12 +204,12 @@ def gif_abdadd(poseFile, anglesFile, i, outpath):
     with open(anglesFile, 'r') as f:
         jsonAngles = json.load(f)
 
-    dataF = jsonPose[i-1]['dataF']
-    dimF = jsonPose[i-1]['dimF']
-    capId = jsonPose[i-1]['capId']
-    partId = jsonPose[i-1]['partId']
-    knee_AbdAdd = jsonAngles[i-1]['knee_AbdAdd']
-    hip_AbdAdd = jsonAngles[i-1]['hip_AbdAdd']
+    dataF = jsonPose[i - 1]['dataF']
+    dimF = jsonPose[i - 1]['dimF']
+    capId = jsonPose[i - 1]['capId']
+    partId = jsonPose[i - 1]['partId']
+    knee_AbdAdd = jsonAngles[i - 1]['knee_AbdAdd']
+    hip_AbdAdd = jsonAngles[i - 1]['hip_AbdAdd']
 
     filename = outpath + partId + '-' + capId + '-AA.gif'
     ims = []  # List of images for gif
@@ -273,7 +273,8 @@ def plot_angles(angleList, title, isRed):
     ax.set_xlabel('Time (%)')  #
     ax.set_ylabel(r"${\Theta}$ (degrees)")
     ax.plot(angleList, color=color)
-    plt.show()
+    #plt.show()
+    plt.savefig('./Part/' + title.replace('/', '-') + '.png', format='png')  # 保存图⽚完整
     plt.close()
 
 
@@ -287,7 +288,8 @@ def plot_anglesLR(angleList, title, xlabel):
     ax.plot(angleList[0], color=red, label='Left')
     ax.plot(angleList[1], color=blue, label='Right')
     ax.legend()
-    plt.show()
+    #plt.show()
+    plt.savefig('./Part/' + title.replace('/', '-') + '.png', format='png')  # 保存图⽚完整
     plt.close()
 
 
@@ -344,12 +346,14 @@ def plot_avg_gcLR(avg_LR, title, plotSep):
         ax.plot(avg_gcL, color=red)
         ax.plot(avg_gcR, color=blue)
         ax.set_xlim(0, 100)
-        plt.show()
+        #plt.show()
+        plt.savefig('./Part/' + title.replace('/', '-') + '.png', format='png')  # 保存图⽚完整
         plt.close()
     else:
         plot_avg(avg_gcL, std_gcL, title, N_L, isRed=True)
         plot_avg(avg_gcR, std_gcR, title, N_R, isRed=False)
-        plt.show()
+        #plt.show()
+        plt.savefig('./Part/' + title.replace('/', '-') + '.png', format='png')  # 保存图⽚完整
         plt.close()
 
 

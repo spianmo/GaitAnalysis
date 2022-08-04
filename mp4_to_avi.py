@@ -16,8 +16,8 @@ def convert_mp4_to_avi(file_name, output_directory):
 
 
 if __name__ == '__main__':
-    input_directory = "E://PycharmProjects/automated-gait-analysis/Part/Part01/"
-    output_directory = "E://PycharmProjects/automated-gait-analysis/Part/Part01/"
+    input_directory = "E://PycharmProjects/automated-gait-analysis/Part/"
+    output_directory = "E://PycharmProjects/automated-gait-analysis/Part/"
     files = glob.glob(input_directory + '*.mp4')
     for file_name in files:
         try:

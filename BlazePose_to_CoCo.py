@@ -43,9 +43,9 @@ def project_point_to_plane(point, axis):
 
 # 3D动作根据投影方向转换为2D动作
 def convert_plot3D_to_plot2D(keyPoints, dim, axis):
-    _point = [keyPoints[0] * (dim[0]),
-              keyPoints[1] * (dim[1]),
-              keyPoints[2] * (dim[2])]
+    _point = [(-1 * keyPoints[0] * (dim[0])) + (dim[0] / 4),
+              keyPoints[1] * (dim[1]) + (dim[0] / 4),
+              (-1 * keyPoints[2] * (dim[2])) + (dim[0] / 4)]
     if _point[2] < 0:
         _point[2] = abs(_point[2])
     if _point[0] < 0 or _point[1] < 0:
@@ -98,8 +98,8 @@ def dump_coco_from_blaze_json(file_path, poseFile):
 
 
 if __name__ == '__main__':
-    basePath = './test/'
-    file_path = basePath + 'cv-data-2022.08.01.16.54'
+    basePath = './test1/'
+    file_path = basePath + 'cv-data-2022.08.02.15.19'
 
     # dump coco from blaze json
     poseFile = file_path + '_pose.json'
@@ -122,6 +122,6 @@ if __name__ == '__main__':
     # plot average gcLR
     # plot_avg_gcLR_all(gcFile)
 
-    # gif_pose(poseFile, basePath)
-    # gif_flexext(poseFile, anglesFile, basePath)
-    # gif_abdadd(poseFile, anglesFile, basePath)
+    gif_pose(poseFile, basePath)
+    gif_flexext(poseFile, anglesFile, basePath)
+    gif_abdadd(poseFile, anglesFile, basePath)

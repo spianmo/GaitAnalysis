@@ -62,7 +62,7 @@ def smooth(angle_list, weight):  # Weight between 0 and 1
     last = angle_list[0]  # First value in the plot (first timestep)
     smoothed = []
     for angle in angle_list:
-        if (math.isnan(angle) or math.isnan(
+        if (angle == None or math.isnan(angle) or math.isnan(
                 last)):  # Caters for no person detecion, which shouldn't occur with this pipeline due to gap filling
             smoothed.append(None)
             last = angle
@@ -153,7 +153,7 @@ def gcLR_removeShort(gcLR1, gcLR2, gcLR3, gcLR4):
     len_gc_L = [len(x) for x in gcLR1[0]]
     len_gc_R = [len(x) for x in gcLR1[1]]
 
-    if len(len_gc_L) == 0 or len(len_gc_R):
+    if len(len_gc_L) == 0 or len(len_gc_R) == 0:
         return [[], []], [[], []], [[], []], [[], []]
 
     thresh_gc_LR_short = [0.7 * mean(len_gc_L), 0.7 * mean(len_gc_R)]
