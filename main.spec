@@ -8,7 +8,7 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[('E:\\PycharmProjects\\automated-gait-analysis\\venv\\Lib\\site-packages\\mxnet\\*', '.\\mxnet')],
+    datas=[],
     hiddenimports=['opencv-python'],
     hookspath=[],
     hooksconfig={},

@@ -169,14 +169,14 @@ def gif_flexext(poseFile, anglesFile, i, outpath):
         ax1.plot(x_R, y_R, color=blue)
 
         # ax2: Knee flexion / extension
-        ax2.set_title('Knee Flexion/Extension')
+        ax2.set_title('膝关节屈曲/伸展')
         ax2.set_ylabel(r"${\Theta}$ (degrees)")
         ax2.set(xlim=(0, len(dataS)), ylim=(-20, 80))
         ax2.plot(knee_FlexExt[0][0:i], color=red)
         ax2.plot(knee_FlexExt[1][0:i], color=blue)
 
         # ax3: Hip flexion / extension
-        ax3.set_title('Hip Flexion/Extension')
+        ax3.set_title('髋关节屈曲/伸展')
         ax3.set_ylabel(r"${\Theta}$ (degrees)")
         ax3.set_xlabel('Frame (count)')
         ax3.set(xlim=(0, len(dataS)), ylim=(-30, 60))
@@ -366,23 +366,23 @@ def plot_avg_gcLR_all(gcFile):
     knee_AbdAdd_avg = gc['knee_AbdAdd_avg']
     hip_AbdAdd_avg = gc['hip_AbdAdd_avg']
 
-    plot_avg_gcLR(knee_FlexExt_avg, 'Knee Flexion/Extension', plotSep=False)
-    plot_avg_gcLR(hip_FlexExt_avg, 'Hip Flexion/Extension', plotSep=False)
-    plot_avg_gcLR(knee_AbdAdd_avg, 'Knee Abduction/Adduction', plotSep=False)
-    plot_avg_gcLR(hip_AbdAdd_avg, 'Hip Abduction/Adduction', plotSep=False)
+    plot_avg_gcLR(knee_FlexExt_avg, '膝关节屈曲/伸展', plotSep=False)
+    plot_avg_gcLR(hip_FlexExt_avg, '髋关节屈曲/伸展', plotSep=False)
+    plot_avg_gcLR(knee_AbdAdd_avg, '膝关节外展/内收', plotSep=False)
+    plot_avg_gcLR(hip_AbdAdd_avg, '髋关节外展/内收', plotSep=False)
 
     # Uncomment what is necessary for gait cycle display
-    # plot_gcLR(gc['knee_FlexExt_gc'], 'Knee Flexion/Extension')
-    # plot_gcLR(gc['hip_FlexExt_gc'], 'Hip Flexion/Extension')
-    # plot_gcLR(gc['knee_AbdAdd_gc'], 'Knee Abduction/Adduction')
-    # plot_gcLR(gc['hip_AbdAdd_gc'], 'Knee Flexion/Extension')
+    plot_gcLR(gc['knee_FlexExt_gc'], '膝关节屈曲/伸展')
+    plot_gcLR(gc['hip_FlexExt_gc'], '髋关节屈曲/伸展')
+    plot_gcLR(gc['knee_AbdAdd_gc'], '膝关节外展/内收')
+    plot_gcLR(gc['hip_AbdAdd_gc'], '膝关节屈曲/伸展')
 
 
 def plot_raw_all(kneeFlexExt, hipFlexExt, kneeAbdAdd, hipAbdAdd):
-    plot_anglesLR(kneeFlexExt, 'Knee Flexion/Extension', 'Frame')
-    plot_anglesLR(hipFlexExt, 'Hip Flexion/Extension', 'Frame')
-    plot_anglesLR(kneeAbdAdd, 'Knee Abduction/Adduction', 'Frame')
-    plot_anglesLR(hipAbdAdd, 'Hip Abduction/Adduction', 'Frame')
+    plot_anglesLR(kneeFlexExt, '膝关节屈曲/伸展', 'Frame')
+    plot_anglesLR(hipFlexExt, '髋关节屈曲/伸展', 'Frame')
+    plot_anglesLR(kneeAbdAdd, '膝关节外展/内收', 'Frame')
+    plot_anglesLR(hipAbdAdd, '髋关节外展/内收', 'Frame')
 
 
 def plot_raw_all_file(anglesFile, i):

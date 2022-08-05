@@ -153,9 +153,6 @@ def gcLR_removeShort(gcLR1, gcLR2, gcLR3, gcLR4):
     len_gc_L = [len(x) for x in gcLR1[0]]
     len_gc_R = [len(x) for x in gcLR1[1]]
 
-    if len(len_gc_L) == 0 or len(len_gc_R) == 0:
-        return [[], []], [[], []], [[], []], [[], []]
-
     thresh_gc_LR_short = [0.7 * mean(len_gc_L), 0.7 * mean(len_gc_R)]
     thresh_gc_LR_long = [1.3 * mean(len_gc_L), 1.3 * mean(len_gc_R)]
 
@@ -276,8 +273,7 @@ def kinematics_process(poseFile, anglesFile, writeFile):
         hip_AbdAdd2 = gcLR(hip_AbdAdd1, stepOnFrames_L, stepOnFrames_R)
 
         # Removing gait cycles that are relatively too short to be correct
-        knee_FlexExt2, hip_FlexExt2, knee_AbdAdd2, hip_AbdAdd2 = gcLR_removeShort(knee_FlexExt2, hip_FlexExt2,
-                                                                                  knee_AbdAdd2, hip_AbdAdd2)
+        # knee_FlexExt2, hip_FlexExt2, knee_AbdAdd2, hip_AbdAdd2 = gcLR_removeShort(knee_FlexExt2, hip_FlexExt2, knee_AbdAdd2, hip_AbdAdd2)
 
         # Resampling to 100 (100 and 0 inclusive)
         knee_FlexExt3 = resample_gcLR(knee_FlexExt2, 101)
@@ -285,7 +281,7 @@ def kinematics_process(poseFile, anglesFile, writeFile):
         knee_AbdAdd3 = resample_gcLR(knee_AbdAdd2, 101)
         hip_AbdAdd3 = resample_gcLR(hip_AbdAdd2, 101)
 
-        plot_gcLR(hip_FlexExt2, 'hip flex/ext')  # for debugging
+        plot_gcLR(hip_FlexExt2, '髋关节屈曲/伸展')  # for debugging
 
         # Adding to global gait cycle instances list
         for gc in knee_FlexExt3[0]: knee_FlexExt_gc[0].append(gc)

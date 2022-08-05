@@ -158,7 +158,7 @@ def gif_flexext(poseFile, anglesFile, basePath):
         ax3 = fig.add_subplot(gs[1, 1])
 
         # ax1: Leg poses
-        ax1.set_title('Flexion and Extension from Side View')
+        ax1.set_title('侧边视图的弯曲和伸展')
         ax1.set(xlim=(0, dimS[0]), ylim=(0, dimS[1]))
         pose = dataS[i]
         x_L, y_L = leg_points(pose, 'L')
@@ -169,14 +169,14 @@ def gif_flexext(poseFile, anglesFile, basePath):
         ax1.plot(x_R, y_R, color=blue)
 
         # ax2: Knee flexion / extension
-        ax2.set_title('Knee Flexion/Extension')
+        ax2.set_title('膝关节屈曲/伸展')
         ax2.set_ylabel(r"${\Theta}$ (degrees)")
         ax2.set(xlim=(0, len(dataS)), ylim=(-20, 80))
         ax2.plot(knee_FlexExt[0][0:i], color=red)
         ax2.plot(knee_FlexExt[1][0:i], color=blue)
 
         # ax3: Hip flexion / extension
-        ax3.set_title('Hip Flexion/Extension')
+        ax3.set_title('髋关节屈曲/伸展')
         ax3.set_ylabel(r"${\Theta}$ (degrees)")
         ax3.set_xlabel('Frame (count)')
         ax3.set(xlim=(0, len(dataS)), ylim=(-30, 60))
@@ -223,7 +223,7 @@ def gif_abdadd(poseFile, anglesFile, basePath):
         ax3 = fig.add_subplot(gs[1, 1])
 
         # ax1: Leg poses
-        ax1.set_title('Abduction and Adduction from Front View')
+        ax1.set_title('前视图的内收外展')
         ax1.set(xlim=(0, dimF[0]), ylim=(0, dimF[1]))
         pose = dataF[i]
         x_L, y_L = leg_points(pose, 'L')
@@ -234,14 +234,14 @@ def gif_abdadd(poseFile, anglesFile, basePath):
         ax1.plot(x_R, y_R, color=blue)
 
         # ax2: Knee abduction / adduction
-        ax2.set_title('Knee Abduction/Adduction')
+        ax2.set_title('膝关节外展/内收')
         ax2.set_ylabel(r"${\Theta}$ (degrees)")
         ax2.set(xlim=(0, len(dataF)), ylim=(-20, 20))
         ax2.plot(knee_AbdAdd[0][0:i], color=red)
         ax2.plot(knee_AbdAdd[1][0:i], color=blue)
 
         # ax3: Hip abduction / adduction
-        ax3.set_title('Hip Abduction/Adduction')
+        ax3.set_title('髋关节外展/内收')
         ax3.set_xlabel('Frame (count)')
         ax3.set_ylabel(r"${\Theta}$ (degrees)")
         ax3.set(xlim=(0, len(dataF)), ylim=(-20, 30))
@@ -273,7 +273,8 @@ def plot_angles(angleList, title, isRed):
     ax.set_xlabel('Time (%)')  #
     ax.set_ylabel(r"${\Theta}$ (degrees)")
     ax.plot(angleList, color=color)
-    plt.show()
+    plt.savefig('./Part/' + title.replace('/','-') + '.png', format='png')  # 保存图⽚完整
+    # plt.show()
     plt.close()
 
 
@@ -287,7 +288,8 @@ def plot_anglesLR(angleList, title, xlabel):
     ax.plot(angleList[0], color=red, label='Left')
     ax.plot(angleList[1], color=blue, label='Right')
     ax.legend()
-    plt.show()
+    plt.savefig('./Part/' + title.replace('/','-') + '.png', format='png')  # 保存图⽚完整
+    # plt.show()
     plt.close()
 
 
@@ -312,7 +314,7 @@ def plot_avg(avg, std, title, N, isRed):
 
     xmax = len(avg)
     fig, ax = plt.subplots()
-    ax.set_title(title + ' (' + str(N) + ' Gait Cycles)')
+    ax.set_title(title + ' (' + str(N) + ' 步态周期)')
     ax.set_xlabel('Time (%)')
     ax.set_ylabel(r"${\Theta}$ (degrees)")
     ax.set_xlim(0, 100)
@@ -338,18 +340,21 @@ def plot_avg_gcLR(avg_LR, title, plotSep):
         rightMax = len(avg_gcR) - 1
         xmax = max(leftMax, rightMax)
         fig, ax = plt.subplots()
-        ax.set_title(title + ' (' + str(N_L) + 'L, ' + str(N_R) + 'R Gait Cycles)')
+        ax.set_title(title + ' (' + str(N_L) + 'L, ' + str(N_R) + 'R 步态周期)')
         ax.set_xlabel('Frame')  # Time (%)
         ax.set_ylabel(r"${\Theta}$ (degrees)")
         ax.plot(avg_gcL, color=red)
         ax.plot(avg_gcR, color=blue)
         ax.set_xlim(0, 100)
-        plt.show()
+        # plt.show()
+        plt.savefig('./Part/' + title.replace('/', '-') + '(' + str(N_L) + 'L-' + str(N_R) + 'R步态周期)' + '.png',
+                    format='png')  # 保存图⽚完整
         plt.close()
     else:
         plot_avg(avg_gcL, std_gcL, title, N_L, isRed=True)
         plot_avg(avg_gcR, std_gcR, title, N_R, isRed=False)
-        plt.show()
+        plt.savefig('./Part/' + title + '.png', format='png')  # 保存图⽚完整
+        # plt.show()
         plt.close()
 
 
@@ -362,23 +367,23 @@ def plot_avg_gcLR_all(gcFile):
     knee_AbdAdd_avg = gc['knee_AbdAdd_avg']
     hip_AbdAdd_avg = gc['hip_AbdAdd_avg']
 
-    plot_avg_gcLR(knee_FlexExt_avg, 'Knee Flexion/Extension', plotSep=False)
-    plot_avg_gcLR(hip_FlexExt_avg, 'Hip Flexion/Extension', plotSep=False)
-    plot_avg_gcLR(knee_AbdAdd_avg, 'Knee Abduction/Adduction', plotSep=False)
-    plot_avg_gcLR(hip_AbdAdd_avg, 'Hip Abduction/Adduction', plotSep=False)
+    plot_avg_gcLR(knee_FlexExt_avg, '膝关节屈曲/伸展', plotSep=False)
+    plot_avg_gcLR(hip_FlexExt_avg, '髋关节屈曲/伸展', plotSep=False)
+    plot_avg_gcLR(knee_AbdAdd_avg, '膝关节外展/内收', plotSep=False)
+    plot_avg_gcLR(hip_AbdAdd_avg, '髋关节外展/内收', plotSep=False)
 
     # Uncomment what is necessary for gait cycle display
-    # plot_gcLR(gc['knee_FlexExt_gc'], 'Knee Flexion/Extension')
-    # plot_gcLR(gc['hip_FlexExt_gc'], 'Hip Flexion/Extension')
-    # plot_gcLR(gc['knee_AbdAdd_gc'], 'Knee Abduction/Adduction')
-    # plot_gcLR(gc['hip_AbdAdd_gc'], 'Knee Flexion/Extension')
+    plot_gcLR(gc['knee_FlexExt_gc'], '膝关节屈曲/伸展')
+    plot_gcLR(gc['hip_FlexExt_gc'], '髋关节屈曲/伸展')
+    plot_gcLR(gc['knee_AbdAdd_gc'], '膝关节外展/内收')
+    plot_gcLR(gc['hip_AbdAdd_gc'], '膝关节屈曲/伸展')
 
 
 def plot_raw_all(kneeFlexExt, hipFlexExt, kneeAbdAdd, hipAbdAdd):
-    plot_anglesLR(kneeFlexExt, 'Knee Flexion/Extension', 'Frame')
-    plot_anglesLR(hipFlexExt, 'Hip Flexion/Extension', 'Frame')
-    plot_anglesLR(kneeAbdAdd, 'Knee Abduction/Adduction', 'Frame')
-    plot_anglesLR(hipAbdAdd, 'Hip Abduction/Adduction', 'Frame')
+    plot_anglesLR(kneeFlexExt, '膝关节屈曲/伸展', 'Frame')
+    plot_anglesLR(hipFlexExt, '髋关节屈曲/伸展', 'Frame')
+    plot_anglesLR(kneeAbdAdd, '膝关节外展/内收', 'Frame')
+    plot_anglesLR(hipAbdAdd, '髋关节外展/内收', 'Frame')
 
 
 def plot_raw_all_file(anglesFile, i):
